@@ -10,6 +10,14 @@ const UserSchema = new Schema({
     unique: true,
     trim: true
   },
+  firstName: {
+    type: String,
+    required: true
+  },
+  lastName: {
+    type: String,
+    required: true
+  },
   email: {
     type: String,
     required: true,
@@ -38,16 +46,25 @@ const UserSchema = new Schema({
   },
   type: {
     type: String,
-    enum: ['regular', 'paramedic', 'dispatcher']
+    enum: ['regular', 'paramedic', 'dispatcher'],
+    default: 'regular'
   }
 })
 
+UserSchema.methods.toJSON = function () {
+  let obj = this.toObject();
+  delete obj.password;
+  delete obj._id;
+  delete obj.hidden;
+  return obj;
+}
+
 UserSchema.statics.findByNick = function (nick) {
-  return this.find({ nick: new RegExp(nick, 'i') })
+  return this.findOne({ nick: new RegExp(nick, 'i') })
 }
 
 UserSchema.statics.findByEmail = function (email) {
-  return this.find({ email: new RegExp(email, 'i') })
+  return this.findOne({ email: new RegExp(email, 'i') })
 }
 
 UserSchema.pre('save', function (next) {
