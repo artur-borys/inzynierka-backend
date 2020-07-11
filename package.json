@@ -10,8 +10,13 @@
     "express": "^4.17.1",
     "express-jwt": "^6.0.0",
     "express-validator": "^6.6.0",
+    "express-winston": "^4.0.3",
     "helmet": "^3.23.3",
     "jsonwebtoken": "^8.5.1",
-    "mongoose": "^5.9.23"
+    "mongoose": "^5.9.23",
+    "winston": "^3.3.3"
+  },
+  "scripts": {
+    "dev": "node index.js"
   }
 }
