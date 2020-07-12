@@ -2,6 +2,8 @@ const { User } = require("./User");
 const { Router } = require("express");
 const wrap = require("../../shared/wrap");
 const { body, validationResult } = require("express-validator");
+const { authorize } = require("../../shared/auth")
+const jwt = require("../../shared/jwt")
 
 async function checkEmailExists(value) {
   const user = await User.findByEmail(value).exec();
@@ -42,7 +44,9 @@ router.post("/user", [
   body("email").trim().notEmpty().withMessage("Musisz podać email").isEmail().withMessage("Musisz podać poprawny email").bail().custom(checkEmailExists),
   body("firstName").notEmpty().withMessage("Musisz podać imię"),
   body("lastName").notEmpty().withMessage("Musisz podać nazwisko"),
-  body("password").trim().isLength({ min: 8, max: 32 }).withMessage("Hasłu musi zawierać od 8 do 32 znaków")
+  body("telephoneNumber").notEmpty().withMessage("Musisz podać numer telefonu").isNumeric().withMessage("Numer musi składać się z samych cyfr i znaku +"),
+  body("password").trim().isLength({ min: 8, max: 32 }).withMessage("Hasłu musi zawierać od 8 do 32 znaków"),
+  body("passwordConfirmation").trim().custom((value, { req }) => { return value === req.body.password }).withMessage("Hasła muszą się zgadzać")
 ], wrap(async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -55,7 +59,8 @@ router.post("/user", [
     email: req.body.email,
     password: req.body.password,
     firstName: req.body.firstName,
-    lastName: req.body.lastName
+    lastName: req.body.lastName,
+    telephoneNumber: req.body.telephoneNumber
   })
   await newUser.save()
   return res.status(201).json({
@@ -75,6 +80,53 @@ router.delete("/user/:nick", wrap(async (req, res, next) => {
   res.status(200).json({
     message: "Usunięto użytkownika"
   })
+}))
+
+router.post("/auth", [
+  body("email").if(body("nick").not().exists()).notEmpty().withMessage("Musisz podać nick lub email"),
+  body("nick").if(body("email").not().exists()).notEmpty().withMessage("Musisz podać nick lub email"),
+  body("password").notEmpty().withMessage("Musisz podać hasło")
+], wrap(async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({
+      errors: errors.array()
+    })
+  }
+  let user = await User.findByNick(req.body.nick);
+  if (!user) {
+    user = await User.findByEmail(req.body.email);
+    if (!user) {
+      return res.status(404).json({
+        errors: ["Nie znaleziono użytkownika"]
+      })
+    }
+  }
+  user.checkPassword(req.body.password).then(resolved => {
+    const accessToken = jwt.sign({
+      id: user.id,
+      nick: user.nick,
+      type: user.type,
+    }, "1h")
+    res.json({
+      accessToken
+    })
+  }, err => {
+    if (err.message === "Hasła nie są zgodne") {
+      return res.status(401).json({
+        errors: [err.message]
+      })
+    }
+  })
+
+}))
+
+router.get("/users/me", authorize, wrap(async (req, res, next) => {
+  if (req.user) {
+    return res.json({
+      user: req.user
+    })
+  }
 }))
 
 module.exports = router;

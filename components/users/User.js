@@ -24,6 +24,11 @@ const UserSchema = new Schema({
     unique: true,
     trim: true
   },
+  telephoneNumber: {
+    type: String,
+    required: true,
+    trim: true
+  },
   password: {
     type: String,
     required: true
@@ -59,12 +64,27 @@ UserSchema.methods.toJSON = function () {
   return obj;
 }
 
+UserSchema.methods.checkPassword = function (password) {
+  return new Promise((resolve, reject) => {
+    bcrypt.compare(password, this.password, (err, same) => {
+      if (err) {
+        reject(err)
+      }
+      if (same) {
+        resolve()
+      } else {
+        reject(new Error("Hasła nie są zgodne"))
+      }
+    })
+  })
+}
+
 UserSchema.statics.findByNick = function (nick) {
-  return this.findOne({ nick: new RegExp(nick, 'i') })
+  return nick ? this.findOne({ nick: new RegExp(nick, 'i') }) : null
 }
 
 UserSchema.statics.findByEmail = function (email) {
-  return this.findOne({ email: new RegExp(email, 'i') })
+  return email ? this.findOne({ email: new RegExp(email, 'i') }) : null
 }
 
 UserSchema.pre('save', function (next) {
