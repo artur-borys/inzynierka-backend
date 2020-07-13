@@ -97,8 +97,8 @@ router.post("/auth", [
   if (!user) {
     user = await User.findByEmail(req.body.email);
     if (!user) {
-      return res.status(404).json({
-        errors: ["Nie znaleziono użytkownika"]
+      return res.status(401).json({
+        errors: ["UNAUTHORIZED"]
       })
     }
   }
@@ -114,7 +114,7 @@ router.post("/auth", [
   }, err => {
     if (err.message === "Hasła nie są zgodne") {
       return res.status(401).json({
-        errors: [err.message]
+        errors: ["UNAUTHORIZED"]
       })
     }
   })
