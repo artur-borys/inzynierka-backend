@@ -4,6 +4,7 @@ const cors = require("cors");
 const { logger, expressLogger, expressErrorLogger } = require("./shared/logger")
 const config = require("./config")
 const usersRouter = require("./components/users/router")
+const eventsRouter = require('./components/events/router');
 const mongoose = require("mongoose")
 
 const app = express();
@@ -14,6 +15,7 @@ app.use(express.json())
 app.use(expressLogger);
 
 app.use("/api", usersRouter);
+app.use("/api", eventsRouter);
 
 app.get("*", (req, res) => {
   res.status(404).json({
