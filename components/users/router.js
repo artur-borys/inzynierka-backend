@@ -23,7 +23,8 @@ async function checkNickExitsts(value) {
 const router = Router();
 
 router.get("/users", wrap(async (req, res, next) => {
-  const users = await User.find();
+  const users = await User.find().populate({ path: 'emergencies' });
+  console.log(users[0].emergencies)
   return res.json({ users })
 }))
 
@@ -46,7 +47,8 @@ router.post("/user", [
   body("lastName").notEmpty().withMessage("Musisz podać nazwisko"),
   body("telephoneNumber").notEmpty().withMessage("Musisz podać numer telefonu").isNumeric().withMessage("Numer musi składać się z samych cyfr i znaku +"),
   body("password").trim().isLength({ min: 8, max: 32 }).withMessage("Hasłu musi zawierać od 8 do 32 znaków"),
-  body("passwordConfirmation").trim().custom((value, { req }) => { return value === req.body.password }).withMessage("Hasła muszą się zgadzać")
+  body("passwordConfirmation").trim().custom((value, { req }) => { return value === req.body.password }).withMessage("Hasła muszą się zgadzać"),
+  body("type").isIn(['regular', 'paramedic', 'dispatcher']).withMessage("Musisz podać odpowiedni typ konta")
 ], wrap(async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -60,7 +62,8 @@ router.post("/user", [
     password: req.body.password,
     firstName: req.body.firstName,
     lastName: req.body.lastName,
-    telephoneNumber: req.body.telephoneNumber
+    telephoneNumber: req.body.telephoneNumber,
+    type: req.body.type
   })
   await newUser.save()
   return res.status(201).json({
@@ -127,6 +130,26 @@ router.get("/users/me", authorize, wrap(async (req, res, next) => {
       user: req.user
     })
   }
+}))
+
+router.get('/users/me/active-emergency', authorize, wrap(async (req, res, next) => {
+  const activeEmergency = await req.user.getActiveEmergency();
+  return res.json({
+    emergency: activeEmergency
+  })
+}))
+
+router.get('/user/:id/active-emergency', wrap(async (req, res, next) => {
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    return res.status(404).json({
+      error: "USER_NOT_FOUND"
+    })
+  }
+  const activeEmergency = await user.getActiveEmergency();
+  return res.json({
+    emergency: activeEmergency
+  })
 }))
 
 module.exports = router;

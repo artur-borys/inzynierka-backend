@@ -1,6 +1,6 @@
 const { Schema, model } = require("mongoose");
 
-const EventSchema = new Schema({
+const EmergencySchema = new Schema({
   createDt: {
     type: Date,
     required: true,
@@ -18,15 +18,9 @@ const EventSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'User'
   },
-  location: {
-    longtitude: {
-      type: String,
-      trim: true
-    },
-    latitude: {
-      type: String,
-      trim: true
-    }
+  position: {
+    type: String,
+    trim: true
   },
   description: {
     type: String,
@@ -34,4 +28,4 @@ const EventSchema = new Schema({
   }
 })
 
-module.exports.Event = model('Event', EventSchema)
+module.exports.Emergency = model('Emergency', EmergencySchema)

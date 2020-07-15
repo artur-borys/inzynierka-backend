@@ -1,5 +1,6 @@
 const { Schema, model } = require("mongoose");
 const bcrypt = require("bcrypt")
+const { Emergency } = require("../emergency/Emergency");
 
 const UserSchema = new Schema({
   nick: {
@@ -54,15 +55,15 @@ const UserSchema = new Schema({
     enum: ['regular', 'paramedic', 'dispatcher'],
     default: 'regular'
   }
+}, {
+  toJSON: {
+    virtuals: true, transform: (doc, ret, options) => {
+      delete ret.id;
+      delete ret.password;
+      return ret;
+    }
+  }
 })
-
-UserSchema.methods.toJSON = function () {
-  let obj = this.toObject();
-  delete obj.password;
-  delete obj._id;
-  delete obj.hidden;
-  return obj;
-}
 
 UserSchema.methods.checkPassword = function (password) {
   return new Promise((resolve, reject) => {
@@ -76,6 +77,30 @@ UserSchema.methods.checkPassword = function (password) {
         reject(new Error("Hasła nie są zgodne"))
       }
     })
+  })
+}
+
+UserSchema.methods.getActiveEmergency = function () {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const emergency = await Emergency.findOne({ reportedBy: this.id, finishDt: null }).exec();
+      resolve(emergency);
+    } catch (err) {
+      reject(err)
+    }
+  })
+}
+
+UserSchema.methods.getLatestEmergencies = function () {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (this.type === 'regular') {
+        const emergencies = await Emergency.find({ reportedBy: this.id }).sort({ createDt: 'desc' }).exec();
+        return resolve(emergencies);
+      }
+    } catch (err) {
+      reject(err);
+    }
   })
 }
 
@@ -107,6 +132,17 @@ UserSchema.pre('save', function (next) {
   } else {
     return next();
   }
+})
+
+UserSchema.virtual('emergencies', {
+  ref: 'Emergency',
+  localField: '_id',
+  foreignField: 'reportedBy',
+  options: { sort: { createDt: 'desc' } }
+})
+
+UserSchema.virtual('fullName').get(function () {
+  return `${this.firstName} ${this.lastName}`
 })
 
 module.exports.User = model('User', UserSchema)

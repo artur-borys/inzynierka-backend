@@ -4,7 +4,7 @@ const cors = require("cors");
 const { logger, expressLogger, expressErrorLogger } = require("./shared/logger")
 const config = require("./config")
 const usersRouter = require("./components/users/router")
-const eventsRouter = require('./components/events/router');
+const emergencysRouter = require('./components/emergency/router');
 const mongoose = require("mongoose")
 
 const app = express();
@@ -15,7 +15,7 @@ app.use(express.json())
 app.use(expressLogger);
 
 app.use("/api", usersRouter);
-app.use("/api", eventsRouter);
+app.use("/api", emergencysRouter);
 
 app.get("*", (req, res) => {
   res.status(404).json({
@@ -36,7 +36,7 @@ app.use(async (error, req, res, next) => {
       })
     } else if (error.message === "UnauthorizedType") {
       return res.status(401).json({
-        error: "UNAUTHORIZED"
+        error: "UNAUTHORIZED_TYPE"
       })
     } else {
       return res.status(500).json({
