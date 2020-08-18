@@ -19,6 +19,9 @@ const UserSchema = new Schema({
     type: String,
     required: true
   },
+  fullName: {
+    type: String,
+  },
   email: {
     type: String,
     required: true,
@@ -114,6 +117,9 @@ UserSchema.statics.findByEmail = function (email) {
 
 UserSchema.pre('save', function (next) {
   let user = this;
+  if (user.isModified('firstName') || user.isModified('lastName')) {
+    user.fullName = `${user.firstName} ${user.lastName}`
+  }
   if (user.isModified('password')) {
     bcrypt.genSalt(10, (err, salt) => {
       if (err) {
@@ -139,10 +145,6 @@ UserSchema.virtual('emergencies', {
   localField: '_id',
   foreignField: 'reportedBy',
   options: { sort: { createDt: 'desc' } }
-})
-
-UserSchema.virtual('fullName').get(function () {
-  return `${this.firstName} ${this.lastName}`
 })
 
 module.exports.User = model('User', UserSchema)

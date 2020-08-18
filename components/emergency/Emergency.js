@@ -9,6 +9,11 @@ const EmergencySchema = new Schema({
   finishDate: {
     type: Date
   },
+  status: {
+    type: String,
+    enum: ['active', 'closed'],
+    default: 'active'
+  },
   reportedBy: {
     type: Schema.Types.ObjectId,
     ref: 'User',

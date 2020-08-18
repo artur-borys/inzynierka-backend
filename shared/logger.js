@@ -1,6 +1,8 @@
 const { createLogger, format, transports } = require('winston');
-const { combine, json, timestamp, prettyPrint } = format;
+const { combine, json, timestamp, prettyPrint, printf } = format;
 const expressWinston = require("express-winston");
+
+const console_transport = new transports.Console()
 
 const combined_transport = new transports.File({
   filename: 'combined.log',
@@ -12,10 +14,16 @@ const error_transport = new transports.File({
   level: 'error'
 })
 
-const mFormat = combine(timestamp(), json(), prettyPrint())
+// const mFormat = combine(timestamp(), json(), prettyPrint())
+const mFormat = combine(
+  timestamp(),
+  printf(({ level, message, timestamp }) => {
+    return `${timestamp} [${level}]: ${message}`
+  })
+)
 
 module.exports.logger = createLogger({
-  transports: [combined_transport, error_transport],
+  transports: [console_transport, combined_transport, error_transport],
   format: mFormat
 })
 

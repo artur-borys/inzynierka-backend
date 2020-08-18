@@ -39,11 +39,13 @@ app.use(async (error, req, res, next) => {
         error: "UNAUTHORIZED_TYPE"
       })
     } else {
+      console.log(error)
       return res.status(500).json({
         error: "INTERNAL_SERVER_ERROR"
       })
     }
   } catch (err) {
+    console.log(err)
     logger.error(err);
     return res.status(500).json({
       error: "INTERNAL_SERVER_ERROR"
@@ -51,7 +53,7 @@ app.use(async (error, req, res, next) => {
   }
 })
 
-mongoose.connect("mongodb://localhost/first-aid-help", { useNewUrlParser: true, useUnifiedTopology: true }).then(() => {
+mongoose.connect(config.mongo.url, config.mongo.options).then(() => {
   app.listen(config.port, config.host, () => {
     logger.info(`Listening on ${config.host}:${config.port}`)
   })

@@ -4,6 +4,7 @@ const wrap = require("../../shared/wrap");
 const { body, validationResult } = require("express-validator");
 const { authorize } = require("../../shared/auth")
 const jwt = require("../../shared/jwt")
+const aqp = require('api-query-params')
 
 async function checkEmailExists(value) {
   const user = await User.findByEmail(value).exec();
@@ -23,8 +24,8 @@ async function checkNickExitsts(value) {
 const router = Router();
 
 router.get("/users", wrap(async (req, res, next) => {
-  const users = await User.find().populate({ path: 'emergencies' });
-  console.log(users[0].emergencies)
+  const { filter } = aqp(req.query)
+  const users = await User.find(filter).populate({ path: 'emergencies' });
   return res.json({ users })
 }))
 

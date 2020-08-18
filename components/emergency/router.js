@@ -21,14 +21,8 @@ router.get('/emergencies', authorizeIfType('dispatcher'), wrap(async (req, res, 
     emergencies = await Emergency.find({ reportedBy: user.id }).sort({ createDt: 'desc' }).populate(['reportedBy', 'paramedic']).exec();
   } else {
     emergencies = await Emergency.find().sort({ createDt: 'desc' }).populate([
-      {
-        path: 'reportedBy',
-        populate: 'fullName'
-      },
-      {
-        path: 'paramedic',
-        populate: 'fullName'
-      }
+      'reportedBy',
+      'paramedic'
     ]).exec();
   }
 
@@ -46,6 +40,19 @@ router.post('/emergency', authorize, wrap(async (req, res, next) => {
     emergency: newEmergency
   })
 }))
+
+router.get('/emergency/:id', authorize, wrap(async (req, res, next) => {
+  const emergency = await Emergency.findById(req.params.id).populate(['reportedBy', 'paramedic'])
+  if (!emergency) {
+    return res.status(404).json({
+      error: "NOT_FOUND"
+    })
+  }
+
+  return res.json({
+    emergency
+  })
+}));
 
 router.delete('/emergency/:id', authorize, wrap(async (req, res, next) => {
   const emergency = await Emergency.findById(req.params.id);
