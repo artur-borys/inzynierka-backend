@@ -6,7 +6,7 @@ const EmergencySchema = new Schema({
     required: true,
     default: Date.now
   },
-  finishDate: {
+  finishDt: {
     type: Date
   },
   status: {

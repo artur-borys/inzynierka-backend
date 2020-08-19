@@ -21,9 +21,13 @@ async function authorize(req, res, next) {
 
 module.exports.authorize = authorize
 
-module.exports.authorizeIfType = function (type) {
+module.exports.authorizeIfType = function (types) {
   return [authorize, (req, res, next) => {
-    if (req.user.type !== type) {
+    // Convert to array if not already
+    const test = Array.isArray(types) ? types : [types]
+
+    // if user type not found in allowed types, throw error
+    if (test.indexOf(req.user.type) === -1) {
       next(new Error("UnauthorizedType"))
     } else {
       next()

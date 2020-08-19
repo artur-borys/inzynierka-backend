@@ -54,6 +54,13 @@ router.get('/emergency/:id', authorize, wrap(async (req, res, next) => {
   })
 }));
 
+router.patch('/emergency/:id', authorizeIfType(['paramedic', 'dispatcher']), wrap(async (req, res, next) => {
+  const emergency = await Emergency.findByIdAndUpdate(req.params.id, req.body).populate(['reportedBy', 'paramedic'])
+  return res.status(201).json({
+    emergency
+  })
+}))
+
 router.delete('/emergency/:id', authorize, wrap(async (req, res, next) => {
   const emergency = await Emergency.findById(req.params.id);
   if (!emergency) {
