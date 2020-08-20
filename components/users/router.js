@@ -135,6 +135,11 @@ router.get("/users/me", authorize, wrap(async (req, res, next) => {
 
 router.get('/users/me/active-emergency', authorize, wrap(async (req, res, next) => {
   const activeEmergency = await req.user.getActiveEmergency();
+  if (!activeEmergency) {
+    return res.status(404).json({
+      error: 'NOT_FOUND'
+    })
+  }
   return res.json({
     emergency: activeEmergency
   })

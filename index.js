@@ -1,4 +1,5 @@
 const express = require("express");
+const http = require('http');
 const helmet = require("helmet");
 const cors = require("cors");
 const { logger, expressLogger, expressErrorLogger } = require("./shared/logger")
@@ -7,7 +8,7 @@ const usersRouter = require("./components/users/router")
 const emergencysRouter = require('./components/emergency/router');
 const mongoose = require("mongoose")
 
-const app = express();
+const { app, server, io } = require('./server')
 app.use(helmet());
 app.use(cors());
 app.use(express.json())
@@ -54,7 +55,7 @@ app.use(async (error, req, res, next) => {
 })
 
 mongoose.connect(config.mongo.url, config.mongo.options).then(() => {
-  app.listen(config.port, config.host, () => {
+  server.listen(config.port, config.host, () => {
     logger.info(`Listening on ${config.host}:${config.port}`)
   })
 }, err => {

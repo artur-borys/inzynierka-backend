@@ -86,7 +86,21 @@ UserSchema.methods.checkPassword = function (password) {
 UserSchema.methods.getActiveEmergency = function () {
   return new Promise(async (resolve, reject) => {
     try {
-      const emergency = await Emergency.findOne({ reportedBy: this.id, status: 'active' }).populate(['reportedBy', 'paramedic']).exec();
+      let filters;
+      if (this.type === 'regular') {
+        filters = {
+          reportedBy: this.id,
+          status: 'active'
+        }
+      } else if (this.type === 'paramedic') {
+        filters = {
+          paramedic: this.id,
+          status: 'active'
+        }
+      } else {
+        reject(new Error('UnauthorizedType'))
+      }
+      const emergency = await Emergency.findOne(filters).populate(['reportedBy', 'paramedic']).exec();
       resolve(emergency);
     } catch (err) {
       reject(err)
