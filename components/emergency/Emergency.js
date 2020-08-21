@@ -30,6 +30,10 @@ const EmergencySchema = new Schema({
   description: {
     type: String,
     maxlength: 300
+  },
+  guide: {
+    type: Object,
+    default: null,
   }
 })
 
