@@ -20,6 +20,10 @@ emergencyNsp.on('connection', (socket) => {
     socket.on('emergencyUpdate', () => {
       socket.to(emergencyId).emit('emergencyUpdated')
     })
+
+    socket.on('imageUpload', (imageId) => {
+      socket.to(emergencyId).emit('imageUploaded', imageId)
+    })
   })
 
   socket.on('disconnecting', (reason) => {

@@ -3,7 +3,8 @@ const { User } = require("./../users/User");
 const { Router } = require("express");
 const wrap = require("../../shared/wrap");
 const { body, validationResult } = require("express-validator");
-const { authorize, authorizeIfType } = require("../../shared/auth")
+const { authorize, authorizeIfType } = require("../../shared/auth");
+const Image = require("./Image");
 
 const router = Router();
 
@@ -72,6 +73,38 @@ router.delete('/emergency/:id', authorize, wrap(async (req, res, next) => {
   return res.status(200).json({
     message: "REMOVED"
   })
+}))
+
+router.post('/emergency/:id/image', wrap(async (req, res, next) => {
+  const newImage = new Image({
+    emergencyId: req.params.id,
+    data: req.body.image
+  })
+
+  await newImage.save();
+
+  return res.status(201).json({
+    ok: true,
+    imageId: newImage.id
+  })
+}))
+
+router.get('/emergency/:id/images', wrap(async (req, res, next) => {
+  const images = await Image.findByEmergency(req.params.id).select('-data').exec();
+  return res.json(images);
+}))
+
+router.get('/image/:id', wrap(async (req, res, next) => {
+  const image = await Image.findById(req.params.id);
+  if (!image) {
+    return res.status(404).json({
+      error: "NOT_FOUND"
+    })
+  } else {
+    return res.json({
+      dataURL: image.data
+    })
+  }
 }))
 
 module.exports = router;
