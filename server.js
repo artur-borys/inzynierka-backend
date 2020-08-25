@@ -1,7 +1,8 @@
 const app = require('express')();
 const server = require('http').createServer(app);
 const io = require('socket.io')(server);
-const { logger } = require('./shared/logger')
+const { logger } = require('./shared/logger');
+const Media = require('./components/emergency/Media');
 
 const adminNsp = io.of('/admin');
 const emergencyNsp = io.of('/emergency')
@@ -21,8 +22,9 @@ emergencyNsp.on('connection', (socket) => {
       socket.to(emergencyId).emit('emergencyUpdated')
     })
 
-    socket.on('imageUpload', (imageId) => {
-      socket.to(emergencyId).emit('imageUploaded', imageId)
+    socket.on('mediaUpload', async (mediaId) => {
+      const media = await Media.findById(mediaId)
+      socket.to(emergencyId).emit('mediaUploaded', media)
     })
   })
 

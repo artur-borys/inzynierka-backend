@@ -1,18 +1,22 @@
 const { Schema, Types, model } = require("mongoose");
 
-const ImageSchema = new Schema({
+const MediaSchema = new Schema({
   emergencyId: {
     type: Types.ObjectId,
     required: true,
   },
-  data: {
+  mime: {
     type: String,
+    required: true,
+  },
+  binaryData: {
+    type: Buffer,
     required: true,
   }
 })
 
-ImageSchema.statics.findByEmergency = function (id) {
+MediaSchema.statics.findByEmergency = function (id) {
   return this.find({ emergencyId: id });
 }
 
-module.exports = model('Image', ImageSchema);
+module.exports = model('Media', MediaSchema);

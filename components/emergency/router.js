@@ -4,7 +4,9 @@ const { Router } = require("express");
 const wrap = require("../../shared/wrap");
 const { body, validationResult } = require("express-validator");
 const { authorize, authorizeIfType } = require("../../shared/auth");
-const Image = require("./Image");
+const Media = require("./Media");
+const multer = require('multer');
+const upload = multer();
 
 const router = Router();
 
@@ -75,8 +77,34 @@ router.delete('/emergency/:id', authorize, wrap(async (req, res, next) => {
   })
 }))
 
+router.post('/emergency/:id/media', upload.single('mediaFile'), wrap(async (req, res, next) => {
+  const newMedia = await Media.create({
+    emergencyId: req.params.id,
+    mime: req.file.mimetype,
+    binaryData: req.file.buffer
+  })
+  return res.status(200).json({
+    ok: true,
+    mediaId: newMedia.id
+  })
+}))
+
+router.get('/emergency/:id/media', wrap(async (req, res, next) => {
+  const media = await Media.findByEmergency(req.params.id).select('-binaryData')
+  return res.json(media);
+}))
+
+router.get('/media/:id', wrap(async (req, res, next) => {
+  const media = await Media.findById(req.params.id);
+  if (media) {
+    return res.contentType(media.mime).send(media.binaryData);
+  } else {
+    return res.status(404);
+  }
+}))
+
 router.post('/emergency/:id/image', wrap(async (req, res, next) => {
-  const newImage = new Image({
+  const newImage = new Media({
     emergencyId: req.params.id,
     data: req.body.image
   })
@@ -90,12 +118,12 @@ router.post('/emergency/:id/image', wrap(async (req, res, next) => {
 }))
 
 router.get('/emergency/:id/images', wrap(async (req, res, next) => {
-  const images = await Image.findByEmergency(req.params.id).select('-data').exec();
+  const images = await Media.findByEmergency(req.params.id).select('-data').exec();
   return res.json(images);
 }))
 
 router.get('/image/:id', wrap(async (req, res, next) => {
-  const image = await Image.findById(req.params.id);
+  const image = await Media.findById(req.params.id);
   if (!image) {
     return res.status(404).json({
       error: "NOT_FOUND"
