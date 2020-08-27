@@ -16,6 +16,7 @@ emergencyNsp.on('connection', (socket) => {
   const userId = socket.handshake.query.userId;
   const emergencyId = socket.handshake.query.emergency;
   logger.info(`Socket connected emergencyNsp, userId: ${userId}, emergencyId: ${emergencyId}`)
+  socket.userId = userId;
 
   socket.join(emergencyId, () => {
     socket.on('emergencyUpdate', () => {
@@ -25,6 +26,21 @@ emergencyNsp.on('connection', (socket) => {
     socket.on('mediaUpload', async (mediaId) => {
       const media = await Media.findById(mediaId)
       socket.to(emergencyId).emit('mediaUploaded', media)
+    })
+
+    socket.on("rtcMessage", (message) => {
+      if (message.type === 'video-offer' || message.type === 'video-answer') {
+        console.log(message.type, message.source)
+      }
+      if (message && message.target) {
+        const sockets = emergencyNsp.clients().sockets;
+        for (let s in sockets) {
+          if (sockets[s].userId === message.target) {
+            sockets[s].emit("rtcMessage", message);
+          }
+        }
+      }
+
     })
   })
 
