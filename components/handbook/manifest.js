@@ -2,7 +2,7 @@ const manifest = {
   version: 1,
   guides: [
     {
-      name: "Guide1",
+      name: "Poradnik 1",
       file: "Guide1.md"
     }
   ]
