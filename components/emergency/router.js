@@ -10,7 +10,7 @@ const upload = multer();
 
 const router = Router();
 
-router.get('/emergencies', authorizeIfType('dispatcher'), wrap(async (req, res, next) => {
+router.get('/emergencies', authorizeIfType(['dispatcher', 'admin']), wrap(async (req, res, next) => {
   let emergencies;
   if (req.query.telephoneNumber) {
     const telephoneNumber = req.query.telephoneNumber;

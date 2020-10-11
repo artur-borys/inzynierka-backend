@@ -55,7 +55,7 @@ const UserSchema = new Schema({
   },
   type: {
     type: String,
-    enum: ['regular', 'paramedic', 'dispatcher'],
+    enum: ['regular', 'paramedic', 'dispatcher', 'admin'],
     default: 'regular'
   }
 }, {

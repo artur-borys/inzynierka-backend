@@ -4,5 +4,14 @@ module.exports = {
   mongo: {
     url: "mongodb://192.168.0.201/first-aid-help",
     options: { useNewUrlParser: true, useUnifiedTopology: true }
+  },
+  admin: {
+    nick: 'admin',
+    password: '12345678',
+    email: 'admin@admin.com',
+    telephoneNumber: '123456789',
+    firstName: 'Admin',
+    lastName: 'Administrator',
+    hidden: true
   }
 }

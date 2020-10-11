@@ -19,6 +19,19 @@ async function authorize(req, res, next) {
   }
 }
 
+module.exports.getUserType = async (req) => {
+  const token = extractToken(req);
+  if (token) {
+    const decoded = jwt.verify(token)
+    const user = await User.findById(decoded.id);
+    if (user) {
+      return user.type;
+    }
+  }
+
+  return null
+}
+
 module.exports.authorize = authorize
 
 module.exports.authorizeIfType = function (types) {

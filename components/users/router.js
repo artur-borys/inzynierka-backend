@@ -2,7 +2,7 @@ const { User } = require("./User");
 const { Router } = require("express");
 const wrap = require("../../shared/wrap");
 const { body, validationResult } = require("express-validator");
-const { authorize } = require("../../shared/auth")
+const { authorize, getUserType } = require("../../shared/auth")
 const jwt = require("../../shared/jwt")
 const aqp = require('api-query-params')
 
@@ -25,12 +25,24 @@ const router = Router();
 
 router.get("/users", wrap(async (req, res, next) => {
   const { filter } = aqp(req.query)
+  const userType = await getUserType(req);
+  if (typeof filter.nick === 'string' && filter.nick.length) {
+    filter.nick = new RegExp(filter.nick.toLowerCase(), 'i')
+  } else {
+    delete filter.nick;
+  }
+
+  if (userType === 'admin') {
+    delete filter.hidden;
+  } else {
+    filter.hidden = false;
+  }
   const users = await User.find(filter).populate({ path: 'emergencies' });
   return res.json({ users })
 }))
 
-router.get("/user/:nick", wrap(async (req, res, next) => {
-  const user = await User.findByNick(req.params.nick)
+router.get("/user/:id", wrap(async (req, res, next) => {
+  const user = await User.findById(req.params.id)
   if (!user) {
     return res.status(404).json({
       errors: ["User not found"]
@@ -72,17 +84,31 @@ router.post("/user", [
   })
 }))
 
-router.delete("/user/:nick", wrap(async (req, res, next) => {
-  const user = await User.findByNick(req.params.nick)
+router.delete("/user/:id", wrap(async (req, res, next) => {
+  const user = await User.findById(req.params.id)
   if (!user) {
     return res.status(404).json({
       errors: ["Nie znaleziono użytkownika"]
     })
   }
-
   await user.remove()
   res.status(200).json({
     message: "Usunięto użytkownika"
+  })
+}))
+
+router.post("/user/:id/toggle-hide", wrap(async (req, res, next) => {
+  const user = await User.findById(req.params.id);
+
+  if (!user) {
+    return res.status(404).json({
+      errors: ["Nie znaleziono użytkownika"]
+    })
+  }
+  user.hidden = !user.hidden;
+  await user.save();
+  return res.status(200).json({
+    hidden: user.hidden
   })
 }))
 
@@ -105,6 +131,11 @@ router.post("/auth", [
         errors: ["UNAUTHORIZED"]
       })
     }
+  }
+  if (user.hidden && user.type !== 'admin') {
+    return res.status(401).json({
+      errors: ["UNAUTHORIZED"]
+    })
   }
   user.checkPassword(req.body.password).then(resolved => {
     const accessToken = jwt.sign({

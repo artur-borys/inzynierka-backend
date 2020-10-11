@@ -5,6 +5,7 @@ const compression = require('compression');
 const cors = require("cors");
 const { logger, expressLogger, expressErrorLogger } = require("./shared/logger")
 const config = require("./config")
+const initScript = require('./init')
 const usersRouter = require("./components/users/router")
 const emergencysRouter = require('./components/emergency/router');
 const handbookRouter = require('./components/handbook/router')
@@ -64,6 +65,7 @@ mongoose.connect(config.mongo.url, config.mongo.options).then(() => {
   server.listen(config.port, config.host, () => {
     logger.info(`Listening on ${config.host}:${config.port}`)
   })
+  initScript.init();
 }, err => {
   logger.error(err);
 })
