@@ -20,6 +20,13 @@ async function checkNickExitsts(value) {
   }
 }
 
+async function checkNumberExists(value) {
+  const user = await User.findByTelephoneNumber(value)
+  if (user) {
+    throw new Error("Numer telefonu został już wykorzystany")
+  }
+}
+
 
 const router = Router();
 
@@ -58,7 +65,7 @@ router.post("/user", [
   body("email").trim().notEmpty().withMessage("Musisz podać email").isEmail().withMessage("Musisz podać poprawny email").bail().custom(checkEmailExists),
   body("firstName").notEmpty().withMessage("Musisz podać imię"),
   body("lastName").notEmpty().withMessage("Musisz podać nazwisko"),
-  body("telephoneNumber").notEmpty().withMessage("Musisz podać numer telefonu").isNumeric().withMessage("Numer musi składać się z samych cyfr i znaku +"),
+  body("telephoneNumber").notEmpty().withMessage("Musisz podać numer telefonu").isNumeric().withMessage("Numer musi składać się z samych cyfr i znaku +").bail().custom(checkNumberExists),
   body("password").trim().isLength({ min: 8, max: 32 }).withMessage("Hasłu musi zawierać od 8 do 32 znaków"),
   body("passwordConfirmation").trim().custom((value, { req }) => { return value === req.body.password }).withMessage("Hasła muszą się zgadzać"),
   body("type").isIn(['regular', 'paramedic', 'dispatcher']).withMessage("Musisz podać odpowiedni typ konta")

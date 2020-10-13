@@ -2,11 +2,14 @@ const { Router } = require("express");
 const wrap = require("../../shared/wrap");
 const { manifest } = require('./manifest')
 const { getGuide, getAllGuides } = require('./utils')
+const { Handbook } = require('./Handbook');
+const { Guide } = require('./Guide');
 
 const router = new Router();
 
 router.get('/handbook/manifest', wrap(async (req, res, next) => {
-  return res.json(manifest)
+  const handbook = await Handbook.find().populate('guides');
+  return res.json(handbook[0]);
 }))
 
 router.get('/handbook/guide/:name', wrap(async (req, res, next) => {
@@ -25,18 +28,17 @@ router.get('/handbook/guide/:name', wrap(async (req, res, next) => {
 }))
 
 router.get('/handbook/update', wrap(async (req, res, next) => {
+  const handbook = await Handbook.findOne().populate('guides');
   if (req.query.version) {
-    if (Number(req.query.version) === manifest.version) {
+    if (Number(req.query.version) === handbook.version) {
       return res.json({
         upToDate: true,
       })
     }
   }
-  const guides = await getAllGuides();
   return res.json({
     upToDate: false,
-    manifest,
-    guides,
+    manifest: handbook
   })
 }))
 

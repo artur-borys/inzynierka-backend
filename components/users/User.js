@@ -31,7 +31,8 @@ const UserSchema = new Schema({
   telephoneNumber: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
+    unique: true
   },
   password: {
     type: String,
@@ -127,6 +128,10 @@ UserSchema.statics.findByNick = function (nick) {
 
 UserSchema.statics.findByEmail = function (email) {
   return email ? this.findOne({ email: new RegExp(email, 'i') }) : null
+}
+
+UserSchema.statics.findByTelephoneNumber = function (number) {
+  return number ? this.findOne({ telephoneNumber: number }) : null
 }
 
 UserSchema.pre('save', function (next) {
