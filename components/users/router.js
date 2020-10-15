@@ -91,18 +91,44 @@ router.post("/user", [
   })
 }))
 
-router.patch('/user/:id', authorize, wrap(async (req, res, next) => {
-  if (req.user.type == 'admin' || req.user.id == req.params.id) {
-    const user = await User.findById(req.params.id);
-    user.update(req.body).exec();
-    await user.save();
-    return res.json(user);
-  } else {
-    return res.status(401).json({
-      error: "UNAUTHORIZED"
-    })
-  }
-}))
+router.patch('/user/:id',
+  authorize,
+  [
+    body('email').optional().custom(checkEmailExists),
+    body('telephoneNumber').optional().custom(checkNumberExists)
+  ],
+  wrap(async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({
+        errors: errors.array()
+      })
+    }
+    if (req.user.type == 'admin' || req.user.id == req.params.id) {
+      const user = await User.findById(req.params.id);
+      if (req.body.firstName) {
+        user.firstName = req.body.firstName;
+        user.lastName = req.body.lastName;
+        user.fullName = `${req.body.firstName} ${req.body.lastName}`
+      }
+      if (req.body.email) {
+        user.email = req.body.email;
+      }
+      if (req.body.telephoneNumber) {
+        user.telephoneNumber = req.body.telephoneNumber;
+      }
+      if (req.body.password) {
+        user.password = req.body.password;
+      }
+      await user.save();
+      return res.json(user);
+    } else {
+      return res.status(401).json({
+        error: "UNAUTHORIZED"
+      })
+    }
+  })
+)
 
 router.delete("/user/:id", wrap(async (req, res, next) => {
   const user = await User.findById(req.params.id)
