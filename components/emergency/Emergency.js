@@ -32,8 +32,9 @@ const EmergencySchema = new Schema({
     maxlength: 300
   },
   guide: {
-    type: Object,
+    type: Schema.Types.ObjectId,
     default: null,
+    ref: 'Guide'
   }
 })
 

@@ -21,7 +21,7 @@ router.get('/emergencies', authorizeIfType(['dispatcher', 'admin']), wrap(async 
         emergencies: []
       })
     }
-    emergencies = await Emergency.find({ reportedBy: user.id }).sort({ createDt: 'desc' }).populate(['reportedBy', 'paramedic']).exec();
+    emergencies = await Emergency.find({ reportedBy: user.id }).sort({ createDt: 'desc' }).populate(['reportedBy', 'paramedic', 'guide']).exec();
   } else {
     emergencies = await Emergency.find().sort({ createDt: 'desc' }).populate([
       'reportedBy',
@@ -45,7 +45,7 @@ router.post('/emergency', authorize, wrap(async (req, res, next) => {
 }))
 
 router.get('/emergency/:id', authorize, wrap(async (req, res, next) => {
-  const emergency = await Emergency.findById(req.params.id).populate(['reportedBy', 'paramedic'])
+  const emergency = await Emergency.findById(req.params.id).populate(['reportedBy', 'paramedic', 'guide'])
   if (!emergency) {
     return res.status(404).json({
       error: "NOT_FOUND"
@@ -58,7 +58,7 @@ router.get('/emergency/:id', authorize, wrap(async (req, res, next) => {
 }));
 
 router.patch('/emergency/:id', authorizeIfType(['paramedic', 'dispatcher']), wrap(async (req, res, next) => {
-  const emergency = await Emergency.findByIdAndUpdate(req.params.id, req.body).populate(['reportedBy', 'paramedic'])
+  const emergency = await Emergency.findByIdAndUpdate(req.params.id, req.body).populate(['reportedBy', 'paramedic', 'guide'])
   return res.status(201).json({
     emergency
   })

@@ -101,7 +101,7 @@ UserSchema.methods.getActiveEmergency = function () {
       } else {
         reject(new Error('UnauthorizedType'))
       }
-      const emergency = await Emergency.findOne(filters).populate(['reportedBy', 'paramedic']).exec();
+      const emergency = await Emergency.findOne(filters).populate(['reportedBy', 'paramedic', 'guide']).exec();
       resolve(emergency);
     } catch (err) {
       reject(err)
